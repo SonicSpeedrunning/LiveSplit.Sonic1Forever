@@ -28,71 +28,43 @@ namespace LiveSplit.Sonic1Forever
         {
             game = Process.GetProcessesByName("SonicForever").OrderByDescending(x => x.StartTime).FirstOrDefault(x => !x.HasExited);
             if (game == null) throw new Exception("Couldn't connect to the game!");
+            IntPtr baseAddress = game.MainModuleWow64Safe().BaseAddress;
 
-            var scanner = new SignatureScanner(game, game.MainModuleWow64Safe().BaseAddress, game.MainModuleWow64Safe().ModuleMemorySize);
-            IntPtr ptr;
-
-            switch (game.Is64Bit())
+            switch ((GameVersion)game.MainModuleWow64Safe().ModuleMemorySize)
             {
-                case false:
-                    switch (game.MainModuleWow64Safe().ModuleMemorySize)
-                    {
-                        default:  // For 1.3.4 and over
-                            ptr = scanner.Scan(new SigScanTarget(2,
-                                "03 05 ????????",         // add eax,[SonicForever.exe+BF4E6C]
-                                "69 C8 C1000000"));       // imul ecx,eax,000000C1
-                            if (ptr == IntPtr.Zero) throw new Exception("Couldn't find address for the following variables: LevelID, ZoneIndicator");
-                            this.LevelID = new MemoryWatcher<byte>(new DeepPointer((IntPtr)game.ReadValue<int>(ptr)));
-                            this.ZoneIndicator = new MemoryWatcher<uint>(new DeepPointer((IntPtr)game.ReadValue<int>(ptr) + 4));
-
-                            ptr = scanner.Scan(new SigScanTarget(2,
-                                "8B 80 ????????",      // mov eax,[eax+SonicForever.exe+90FAAC]
-                                "89 04 95 ????????",   // mov [edx*4+SonicForever.exe+1234F00],eax
-                                "E9 070E0000"));       // jmp SonicForever.exe+2AAA6
-                            if (ptr == IntPtr.Zero) throw new Exception("Couldn't find address for the following variable: State");
-                            this.State = new MemoryWatcher<byte>(new DeepPointer((IntPtr)game.ReadValue<int>(ptr) + 0x9D8));
-                            break;
-
-                        case 0x362B000: // 1.2.1 32bit and below
-                            this.LevelID = new MemoryWatcher<byte>(new DeepPointer(game.MainModuleWow64Safe().BaseAddress + 0x5C7FEC));
-                            this.ZoneIndicator = new MemoryWatcher<uint>(new DeepPointer(game.MainModuleWow64Safe().BaseAddress + 0x7A2970));
-                            this.State = new MemoryWatcher<byte>(new DeepPointer(game.MainModuleWow64Safe().BaseAddress + 0x48867C));
-                            break;
-                    }
+                case GameVersion.x86_1_2_1_and_below:
+                    this.LevelID = new MemoryWatcher<byte>(new DeepPointer(baseAddress + 0x5C7FEC));
+                    this.ZoneIndicator = new MemoryWatcher<uint>(new DeepPointer(baseAddress + 0x7A2970));
+                    this.State = new MemoryWatcher<byte>(new DeepPointer(baseAddress + 0x48867C));
                     break;
 
-                case true:
-                    switch (game.MainModuleWow64Safe().ModuleMemorySize)
-                    {
-                        default: // For 1.3.4 and over
-                            ptr = scanner.Scan(new SigScanTarget(3,
-                                "48 63 05 ????????",   // movsxd rax,dword ptr [SonicForever.exe+7C6C74]  <----
-                                "48 C1 E1 08"));       // shl rcx,08
-                            if (ptr == IntPtr.Zero) throw new Exception("Couldn't find address for the following variables: LevelID");
-                            this.LevelID = new MemoryWatcher<byte>(new DeepPointer(ptr + 4 + game.ReadValue<int>(ptr)));
-
-                            ptr = scanner.Scan(new SigScanTarget(2,
-                                "8B 0D ????????",     // mov ecx,[SonicForever.exe+5EC0A8]  <----
-                                "74 59"));            // je SonicForever.exe+30648
-                            if (ptr == IntPtr.Zero) throw new Exception("Couldn't find address for the following variables: ZoneIndicator");
-                            this.ZoneIndicator = new MemoryWatcher<uint>(new DeepPointer(ptr + 4 + game.ReadValue<int>(ptr) + 0x8));
-
-                            ptr = scanner.Scan(new SigScanTarget(3,
-                                "4C 8D 25 ????????",  // lea r12,[SonicForever.exe+37C730]   <----
-                                "44 8B 35 ????????",  // mov r14d,[SonicForever.exe+E07A94]
-                                "33 DB"));            // xor ebx,ebx
-                            if (ptr == IntPtr.Zero) throw new Exception("Could not find address!");
-                            this.State = new MemoryWatcher<byte>(new DeepPointer(ptr + 4 + game.ReadValue<int>(ptr) + 0x9D8 + 0x14));
-                            break;
-
-                        case 0x364B000:   // 1.2.1 64bit and below
-                            this.LevelID = new MemoryWatcher<byte>(new DeepPointer(game.MainModuleWow64Safe().BaseAddress + 0x79E04C));
-                            this.ZoneIndicator = new MemoryWatcher<uint>(new DeepPointer(game.MainModuleWow64Safe().BaseAddress + 0x5E5C90));
-                            this.State = new MemoryWatcher<byte>(new DeepPointer(game.MainModuleWow64Safe().BaseAddress + 0x376CFC));
-                            break;
-                    }
+                case GameVersion.x86_1_3_4_and_over:
+                    this.LevelID = new MemoryWatcher<byte>(new DeepPointer(baseAddress + 0x7A2D7C));
+                    this.ZoneIndicator = new MemoryWatcher<uint>(new DeepPointer(baseAddress + 0x7A2D80));
+                    this.State = new MemoryWatcher<byte>(new DeepPointer(baseAddress + 0x50F294));
                     break;
+
+                case GameVersion.x86_1_4_0_and_over:
+                    this.LevelID = new MemoryWatcher<byte>(new DeepPointer(baseAddress + 0x15F4454));
+                    this.ZoneIndicator = new MemoryWatcher<uint>(new DeepPointer(baseAddress + 0x15F4458));
+                    this.State = new MemoryWatcher<byte>(new DeepPointer(baseAddress + 0x130FA6C));
+                    break;
+
+                case GameVersion.x64_1_2_1_and_below:
+                    this.LevelID = new MemoryWatcher<byte>(new DeepPointer(baseAddress + 0x79E04C));
+                    this.ZoneIndicator = new MemoryWatcher<uint>(new DeepPointer(baseAddress + 0x5E5C90));
+                    this.State = new MemoryWatcher<byte>(new DeepPointer(baseAddress + 0x376CFC));
+                    break;
+
+                case GameVersion.x64_1_3_4_and_over:
+                    this.LevelID = new MemoryWatcher<byte>(new DeepPointer(baseAddress + 0x7C6C74));
+                    this.ZoneIndicator = new MemoryWatcher<uint>(new DeepPointer(baseAddress + 0x5EC0B0));
+                    this.State = new MemoryWatcher<byte>(new DeepPointer(baseAddress + 0x37D11C));
+                    break;
+
+                default: throw new Exception("Unsupported game version");
             }
+
             this.AddRange(this.GetType().GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).Where(p => !p.GetIndexParameters().Any()).Select(p => p.GetValue(this, null) as MemoryWatcher).Where(p => p != null));
         }
 

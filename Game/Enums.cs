@@ -1,5 +1,14 @@
 ﻿namespace LiveSplit.Sonic1Forever
 {
+    enum GameVersion
+    {
+        x86_1_2_1_and_below = 0x362B000,
+        x86_1_3_4_and_over  = 0x3623000,
+        x86_1_4_0_and_over  = 0x4474000,
+        x64_1_2_1_and_below = 0x364B000,
+        x64_1_3_4_and_over  = 0x3645000
+    }
+
     enum StartTrigger
     {
         NewGame,
