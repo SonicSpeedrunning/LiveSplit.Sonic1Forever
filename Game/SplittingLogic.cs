@@ -1,54 +1,62 @@
 ﻿using System;
-using System.Threading;
 
 namespace LiveSplit.Sonic1Forever
 {
-    class SplittingLogic
+    partial class Sonic1ForeverComponent
     {
-        private Watchers watchers;
-
-        public event EventHandler<StartTrigger> OnStartTrigger;
-        public event EventHandler<Acts> OnSplitTrigger;
-        public event EventHandler OnResetTrigger;
-
-        public void Update()
+        private bool Start()
         {
-            if (!VerifyOrHookGameProcess()) return;
-            watchers.Update();
-            Start();
-            ResetLogic();
-            Split();
+            bool RunStartedSaveFile, RunStartedNoSaveFile, RunStartedNGP;
+
+            switch (watchers.GameVersion)
+            {
+                case GameVersion.Below1_5_0:
+                    RunStartedSaveFile = watchers.State.Changed && watchers.State.Current == 2 && watchers.ZoneIndicator.Current == ZoneIndicator.SaveSelect;
+                    RunStartedNoSaveFile = watchers.State.Old == 6 && watchers.State.Current == 7;
+                    RunStartedNGP = watchers.State.Old == 8 && watchers.State.Current == 9;
+                    return (settings.StartCleanSave && (RunStartedSaveFile || RunStartedNoSaveFile)) || (settings.StartNewGamePlus && RunStartedNGP);
+
+                case GameVersion.V1_5_0_or_higher:
+                default:
+                    RunStartedSaveFile = watchers.State.Old == 3 && watchers.State.Current == 7 && watchers.ZoneIndicator.Current == ZoneIndicator.SaveSelect;
+                    RunStartedNoSaveFile = watchers.State.Old == 10 && watchers.State.Current == 11;
+                    RunStartedNGP = watchers.State.Old == 2 && watchers.State.Current == 6 && watchers.ZoneSelectOnGameComplete.Current == 0;
+                    return (settings.StartCleanSave && (RunStartedSaveFile || RunStartedNoSaveFile)) || (settings.StartNewGamePlus && RunStartedNGP);
+            }
         }
 
-        void Start()
+        private bool Split()
         {
-            if (FlippedBool(watchers.RunStartedSaveFile) || FlippedBool(watchers.RunStartedNoSaveFile))
-                this.OnStartTrigger?.Invoke(this, StartTrigger.NewGame);
-            else if (FlippedBool(watchers.RunStartedNGP))
-                this.OnStartTrigger?.Invoke(this, StartTrigger.NewGamePlus);
+            if (watchers.Act.Current == watchers.Act.Old + 1)
+                return settings["c" + ((int)watchers.Act.Old + 1).ToString()];
+            else if (watchers.Act.Current == (Acts)(-1) && watchers.Act.Current != watchers.Act.Old)
+                return settings.c19;
+            else return false;
         }
 
-        void ResetLogic()
+        bool Reset()
         {
-            if (FlippedBool(watchers.StartingNewGame)) this.OnResetTrigger?.Invoke(this, EventArgs.Empty);
+            if (!settings.Reset)
+                return false;
+
+            switch (watchers.GameVersion)
+            {
+                case GameVersion.Below1_5_0:
+                    return watchers.State.Current == 201 && watchers.State.Old == 200 && watchers.ZoneIndicator.Current == ZoneIndicator.SaveSelect;
+                case GameVersion.V1_5_0_or_higher:
+                default:
+                    return watchers.State.Current == 14 && watchers.State.Old == 13 && watchers.ZoneIndicator.Current == ZoneIndicator.SaveSelect;
+            }
         }
 
-        void Split()
+        bool IsLoading()
         {
-            if (watchers.Act.Changed && watchers.Act.Current == Acts.Ending) { this.OnSplitTrigger?.Invoke(this, Acts.FinalZone); }
-            else if (watchers.Act.Old == watchers.Act.Current - 1) { this.OnSplitTrigger?.Invoke(this, watchers.Act.Old); }
+            return false;
         }
 
-        bool VerifyOrHookGameProcess()
+        private TimeSpan? GameTime()
         {
-            if (watchers != null && watchers.IsGameHooked) return true;
-            try { watchers = new Watchers(); } catch { Thread.Sleep(500); return false; }
-            return true;
-        }
-
-        private bool FlippedBool(FakeMemoryWatcher<bool> boolean)
-        {
-            return boolean.Current && !boolean.Old;
+            return null;
         }
     }
 }

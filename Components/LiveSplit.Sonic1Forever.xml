@@ -1,5 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <updates>
+	<update version="1.0.1">
+		<files>
+			<file path="Components/LiveSplit.Sonic1Forever.dll" status="changed"/>
+		</files>
+		<changelog>
+			<change>Added support to Sonic 1 Forever v1.5.0</change>
+		</changelog>
+	</update>
 	<update version="1.0.0.3">
 		<files>
 			<file path="Components/LiveSplit.Sonic1Forever.dll" status="changed"/>
@@ -8,12 +16,12 @@
 			<change>Code cleanup</change>
 		</changelog>
 	</update>
-	 <update version="1.0.0.2">
+	<update version="1.0.0.2">
 		<files>
 			<file path="Components/LiveSplit.Sonic1Forever.dll" status="changed"/>
 		</files>
 		<changelog>
 			<change>First release</change>
 		</changelog>
-	 </update>
+	</update>
 </updates>
