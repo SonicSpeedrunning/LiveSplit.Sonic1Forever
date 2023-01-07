@@ -1,4 +1,5 @@
-# Sonic3Din2DSplitter
-Autosplitter for Sonic 3D in 2D
+<h1> <img src="https://raw.githubusercontent.com/SonicSpeedrunning/LiveSplit.Sonic1Forever/master/Sonic_2_Absolute_Icon.webp" alt="SonicForever" height="75" align="middle" /> Sonic the Hedgehog Forever - Autosplitter</h1>
 
-Requires at least v1.26 of Sonic3D in 2D, available at https://sotaknuck.itch.io/sonic3d2d
+Autosplitter for Sonic 1 Forever with customizable options
+
+<img src="https://raw.githubusercontent.com/SonicSpeedrunning/LiveSplit.Sonic1Forever/master/settings.png">
