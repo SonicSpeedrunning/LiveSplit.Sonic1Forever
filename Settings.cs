@@ -114,10 +114,10 @@ namespace LiveSplit.Sonic1Forever
             c13 = ParseBool(settings, "c13", true);
             c14 = ParseBool(settings, "c14", true);
             c15 = ParseBool(settings, "c15", true);
-            c15 = ParseBool(settings, "c16", true);
-            c15 = ParseBool(settings, "c17", true);
-            c15 = ParseBool(settings, "c18", true);
-            c15 = ParseBool(settings, "c19", true);
+            c16 = ParseBool(settings, "c16", true);
+            c17 = ParseBool(settings, "c17", true);
+            c18 = ParseBool(settings, "c18", true);
+            c19 = ParseBool(settings, "c19", true);
         }
 
         static bool ParseBool(XmlNode settings, string setting, bool default_ = false)

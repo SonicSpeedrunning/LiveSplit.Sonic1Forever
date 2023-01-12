@@ -10,7 +10,7 @@ namespace LiveSplit.Sonic1Forever
         /// <summary>
         /// The local ProcessHook instance.
         /// </summary>
-        private readonly ProcessHook GameProcess = new ProcessHook();
+        private readonly ProcessHook GameProcess;
 
         /// <summary>
         /// The currently hooked Process instance.
